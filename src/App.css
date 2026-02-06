@@ -1,0 +1,133 @@
+import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Home, Calendar, PieChart, Shirt, PlusCircle } from 'lucide-react';
+
+// 페이지들 가져오기 (Home은 간단해서 여기에 둠)
+import Stats from './pages/Stats';
+import Log from './pages/Log';
+
+// --- Components ---
+
+const HomePage = ({ level, exp, maxExp, stats }) => (
+  <div className="p-6 pb-24 flex flex-col items-center animate-fade-in">
+    <header className="w-full flex justify-between items-center mb-10">
+      <div>
+        <h1 className="text-xl font-bold text-tennis-dark">한성종PD님</h1>
+        <p className="text-sm text-gray-500">Lv.{level} 테니스 플레이어</p>
+      </div>
+      <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">⚙️</div>
+    </header>
+
+    <div className="relative mb-12 group cursor-pointer">
+      <div className="w-48 h-48 bg-white rounded-2xl border-4 border-tennis-green flex items-center justify-center shadow-[0_10px_20px_rgba(42,157,143,0.2)] transition-transform transform group-hover:scale-105">
+        <div className="text-7xl animate-bounce">🎾</div> 
+      </div>
+      <div className="absolute -top-4 -right-2 bg-tennis-orange text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+        오늘 컨디션 최고!
+      </div>
+    </div>
+
+    <div className="w-full max-w-xs mb-8">
+      <div className="flex justify-between text-xs mb-2 font-bold text-gray-500">
+        <span>EXP</span>
+        <span>{exp} / {maxExp}</span>
+      </div>
+      <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+        <div 
+          className="h-full bg-tennis-green transition-all duration-1000 ease-out" 
+          style={{ width: `${(exp / maxExp) * 100}%` }}
+        ></div>
+      </div>
+    </div>
+
+    {/* 최고 스탯 표시 */}
+    <div className="bg-white px-6 py-3 rounded-full border border-gray-200 shadow-sm text-sm font-medium text-gray-600">
+       현재 주력: <span className="text-tennis-green font-bold">포핸드 Lv.{stats.forehand}</span>
+    </div>
+  </div>
+);
+
+// 하단 네비게이션
+const BottomNav = () => {
+  const location = useLocation();
+  const menu = [
+    { name: '홈', path: '/', icon: <Home size={20} /> },
+    { name: '분석', path: '/stats', icon: <PieChart size={20} /> },
+    { name: '기록', path: '/log', icon: <PlusCircle size={36} className="text-tennis-green drop-shadow-md" /> },
+    { name: '달력', path: '/calendar', icon: <Calendar size={20} /> },
+    { name: '락커', path: '/locker', icon: <Shirt size={20} /> },
+  ];
+
+  return (
+    <nav className="fixed bottom-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-100 flex justify-around py-3 pb-safe z-50">
+      {menu.map((item) => (
+        <Link 
+          key={item.name} 
+          to={item.path} 
+          className={`flex flex-col items-center text-[10px] transition-colors ${location.pathname === item.path ? 'text-tennis-green font-bold' : 'text-gray-400'}`}
+        >
+          {item.icon}
+          <span className="mt-1">{item.name}</span>
+        </Link>
+      ))}
+    </nav>
+  );
+};
+
+// --- Main App ---
+export default function App() {
+  // [Global State] 앱 전체에서 공유되는 데이터
+  const [level, setLevel] = useState(1);
+  const [exp, setExp] = useState(20);
+  const maxExp = 100;
+  
+  // 나의 능력치 (기록할 때마다 올라감)
+  const [stats, setStats] = useState({
+    forehand: 1, backhand: 1, serve: 1, volley: 1, footwork: 1, mental: 1
+  });
+
+  const [logs, setLogs] = useState([]); // 기록 저장소
+
+  // 기록 저장 함수 (Log.jsx에서 호출됨)
+  const handleSaveLog = (logData, gainedStats) => {
+    // 1. 로그 저장
+    setLogs([logData, ...logs]);
+
+    // 2. 스탯 업데이트 (기존 스탯 + 이번에 얻은 스탯)
+    setStats(prev => ({
+      forehand: prev.forehand + gainedStats.forehand,
+      backhand: prev.backhand + gainedStats.backhand,
+      serve: prev.serve + gainedStats.serve,
+      volley: prev.volley + gainedStats.volley,
+      footwork: prev.footwork + gainedStats.footwork,
+      mental: prev.mental + gainedStats.mental,
+    }));
+
+    // 3. 경험치 획득 (운동 시간에 비례)
+    const gainedExp = Math.floor(logData.duration / 2); // 30분 운동하면 15exp
+    let newExp = exp + gainedExp;
+    
+    // 레벨업 로직
+    if (newExp >= maxExp) {
+      newExp = newExp - maxExp;
+      setLevel(prev => prev + 1);
+      alert("🎉 레벨업! 캐릭터가 성장했습니다!");
+    }
+    setExp(newExp);
+  };
+
+  return (
+    <BrowserRouter>
+      <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
+        <Routes>
+          <Route path="/" element={<HomePage level={level} exp={exp} maxExp={maxExp} stats={stats} />} />
+          <Route path="/stats" element={<Stats stats={stats} />} />
+          <Route path="/log" element={<Log onSave={handleSaveLog} />} />
+          <Route path="/calendar" element={<div className="p-10 text-center">준비 중입니다</div>} />
+          <Route path="/locker" element={<div className="p-10 text-center">준비 중입니다</div>} />
+        </Routes>
+        <BottomNav />
+      </div>
+    </BrowserRouter>
+  );
+}
