@@ -35,7 +35,7 @@ export default function Settings({ data, onUpdateProfile, onImportData, onResetD
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `pixel-tennis-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `my-tennis-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -57,7 +57,7 @@ export default function Settings({ data, onUpdateProfile, onImportData, onResetD
           setImportMessage('데이터를 성공적으로 불러왔습니다!');
           setImportError(false);
         } else {
-          setImportMessage('올바른 Pixel Tennis 백업 파일이 아닙니다.');
+          setImportMessage('올바른 백업 파일이 아닙니다.');
           setImportError(true);
         }
       } catch {

@@ -35,8 +35,8 @@ export default function Onboarding({ onComplete }) {
 
         {step === 1 && (
           <div className="animate-fade-in text-center">
-            <h1 className="text-[28px] font-bold text-[#191F28] mb-2">Pixel Tennis</h1>
-            <p className="text-[#8B95A1] text-sm mb-10">나만의 테니스 성장 다이어리</p>
+            <h1 className="text-[28px] font-bold text-[#191F28] mb-2">잇츠 마이 테니스</h1>
+            <p className="text-[#8B95A1] text-sm mb-10">성장한다. 조용히 그리고 천천히.</p>
 
             <div className="text-left mb-8">
               <label className="block text-sm font-bold text-[#8B95A1] mb-2">이름을 알려주세요</label>

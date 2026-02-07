@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.pixeltennis.app',
-  appName: 'Pixel Tennis',
+  appName: '잇츠 마이 테니스',
   webDir: 'dist',
   server: {
     androidScheme: 'https'

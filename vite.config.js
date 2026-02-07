@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/icon.svg', 'icons/icon-180.png'],
       manifest: {
-        name: 'Pixel Tennis',
-        short_name: 'Tennis',
-        description: '나만의 테니스 성장 기록',
+        name: '잇츠 마이 테니스',
+        short_name: '마이테니스',
+        description: '성장한다. 조용히 그리고 천천히.',
         theme_color: '#F4F4F4',
         background_color: '#F4F4F4',
         display: 'standalone',
