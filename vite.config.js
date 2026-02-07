@@ -3,26 +3,36 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  base: './',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      includeAssets: ['icons/icon.svg', 'icons/icon-180.png'],
       manifest: {
         name: 'Pixel Tennis',
         short_name: 'Tennis',
         description: '나만의 테니스 성장 기록',
-        theme_color: '#ffffff',
+        theme_color: '#F4F4F4',
+        background_color: '#F4F4F4',
+        display: 'standalone',
+        orientation: 'portrait',
         icons: [
           {
-            src: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/1f3be.png', // 임시 아이콘 (테니스 라켓)
+            src: 'icons/icon-192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/1f3be.png',
+            src: 'icons/icon-512.png',
             sizes: '512x512',
             type: 'image/png'
+          },
+          {
+            src: 'icons/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       }

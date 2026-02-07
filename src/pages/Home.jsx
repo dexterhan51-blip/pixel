@@ -1,89 +1,150 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-// ▼▼▼ 방금 만든 캐릭터 컴포넌트 가져오기 ▼▼▼
-import PixelCharacter from '../components/PixelCharacter';
+import { Settings } from 'lucide-react';
+import EmptyState from '../components/EmptyState';
+import { getLevelTitle, calculateStreak } from '../utils/gameData';
 
-export default function Home({ level, exp, maxExp, stats, gearColor }) {
+export default function Home({ level, exp, maxExp, stats, gearColor, profileName, logs, storageWarning }) {
   const navigate = useNavigate();
   const expPercent = Math.floor((exp / maxExp) * 100);
 
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? '좋은 아침이에요' : hour < 18 ? '좋은 오후예요' : '좋은 저녁이에요';
+
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const safeLogs = Array.isArray(logs) ? logs : [];
+  const weeklyMinutes = safeLogs
+    .filter(log => new Date(log.date) >= startOfWeek)
+    .reduce((sum, log) => sum + (log.duration || 0), 0);
+  const weeklyHours = (weeklyMinutes / 60).toFixed(1);
+  const weeklyCount = safeLogs.filter(log => new Date(log.date) >= startOfWeek).length;
+
+  const hasLogs = safeLogs.length > 0;
+
+  const streak = calculateStreak(safeLogs);
+
+  // Which days of this week have training (Sun=0 .. Sat=6)
+  const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+  const weekTrainedDays = new Set();
+  safeLogs.forEach(log => {
+    const logDate = new Date(log.date);
+    if (logDate >= startOfWeek) {
+      weekTrainedDays.add(logDate.getDay());
+    }
+  });
+
+  const statItems = [
+    { label: '포핸드', value: stats.forehand },
+    { label: '백핸드', value: stats.backhand },
+    { label: '서브', value: stats.serve },
+    { label: '발리', value: stats.volley },
+    { label: '풋워크', value: stats.footwork },
+    { label: '멘탈', value: stats.mental },
+  ];
+
   return (
-    <div className="pt-8 pb-32 px-4 max-w-md mx-auto space-y-6 animate-fade-in font-sans">
-      
-      {/* 1. 상단 프로필 카드 */}
-      <div className="bg-white p-6 rounded-xl border border-[#dde4e3] shadow-sm">
-        <div className="flex items-center gap-4 mb-5">
-          <div className="w-16 h-16 rounded-lg bg-[#f1f4f3] border-2 border-primary flex items-center justify-center text-3xl">🧑‍💻</div>
-          <div className="flex flex-col flex-1">
-            <div className="flex items-center justify-between mb-1">
-              <span className="bg-primary text-white text-[11px] font-bold px-2 py-0.5 rounded tracking-tight">Lv.{level} 루키</span>
-              <span className="text-[#678380] text-[11px] font-bold tracking-tight">랭킹 #128</span>
-            </div>
-            <p className="text-[#121716] text-xl font-bold tracking-tight">한성종PD님</p>
-            <div className="mt-2">
-              <div className="flex justify-between items-center mb-1">
-                <p className="text-[11px] font-bold text-[#678380]">경험치 (EXP)</p>
-                <p className="text-primary text-[11px] font-bold">{expPercent}%</p>
-              </div>
-              <div className="h-2 w-full bg-[#dde4e3] rounded-full overflow-hidden">
-                <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${expPercent}%` }}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="pt-safe pb-32 px-5 max-w-md mx-auto animate-fade-in font-sans">
 
-      {/* 2. 캐릭터 스테이지 (메인) */}
-      <div 
-        onClick={() => navigate('/locker')}
-        className="relative bg-white rounded-2xl border-2 border-[#dde4e3] p-8 flex flex-col items-center justify-center min-h-[360px] overflow-hidden shadow-inner group cursor-pointer hover:border-primary transition-colors"
-      >
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#121716 2px, transparent 2px)', backgroundSize: '24px 24px' }}></div>
-        <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-primary/10 to-transparent flex flex-col items-center">
-          <div className="w-full h-[1px] bg-primary/20 mt-4"></div>
-          <div className="w-full h-[1px] bg-primary/10 mt-8"></div>
-        </div>
-
-        {/* ▼▼▼ 여기가 핵심! 아까 그 🎾 이모지 대신 이 컴포넌트를 넣습니다 ▼▼▼ */}
-        <PixelCharacter level={level} gearColor={gearColor} />
-        {/* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */}
-
-        <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-[#dde4e3] shadow-sm flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full transition-colors duration-500" style={{ backgroundColor: gearColor }}></div>
-          <p className="text-[11px] font-bold text-[#121716]">착용 장비</p>
-        </div>
-      </div>
-
-      {/* 3. 주간 요약 카드 */}
-      <div className="group relative rounded-xl bg-white p-5 shadow-sm border border-[#dde4e3] flex items-stretch gap-4 overflow-hidden">
-        <div className="flex flex-col justify-between flex-1">
+      {storageWarning && (
+        <div className="mt-4 bg-amber-50 rounded-[16px] shadow-card p-4 flex items-start gap-3">
+          <span className="text-lg">⚠️</span>
           <div>
-            <p className="text-primary text-[11px] font-bold uppercase tracking-wider mb-1">주간 요약</p>
-            <p className="text-[#121716] text-2xl font-bold tracking-tight">5.5 시간</p>
-            <p className="text-[#678380] text-xs font-medium mt-1 tracking-tight">이번 주 총 운동 시간</p>
+            <p className="text-sm font-bold text-amber-800">저장 공간이 거의 찼습니다</p>
+            <p className="text-xs text-amber-600 mt-1">설정에서 데이터를 백업한 후 오래된 사진이 포함된 기록을 정리해주세요.</p>
           </div>
-          <button onClick={() => navigate('/stats')} className="mt-4 flex items-center justify-center rounded-lg h-10 px-4 bg-primary text-white gap-2 text-xs font-bold w-fit hover:brightness-110 transition-all shadow-sm">
-            <span className="material-symbols-outlined text-[18px]">analytics</span>
-            <span>성장 리포트</span>
-          </button>
         </div>
-        <div className="w-24 bg-gray-50 rounded-lg border border-[#dde4e3] flex items-center justify-center text-4xl opacity-50 grayscale group-hover:grayscale-0 transition-all">📊</div>
+      )}
+
+      {/* Greeting + Settings */}
+      <div className="flex items-center justify-between mt-8 mb-6">
+        <div>
+          <p className="text-[#8B95A1] text-sm font-medium">{greeting}</p>
+          <p className="text-[#191F28] text-[22px] font-bold tracking-tight mt-0.5">{profileName || '플레이어'}님</p>
+        </div>
+        <button onClick={() => navigate('/settings')} className="w-10 h-10 rounded-full bg-white shadow-card flex items-center justify-center">
+          <Settings size={18} className="text-[#8B95A1]" />
+        </button>
       </div>
 
-      {/* 4. 스탯 요약 그리드 */}
+      {/* Level Progress Card */}
+      <div className="bg-white rounded-[16px] shadow-card p-5 mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[#191F28] text-lg font-bold">Lv.{level}</span>
+            <span className="text-[#8B95A1] text-sm font-medium">{getLevelTitle(level)}</span>
+          </div>
+          <span className="text-primary text-sm font-bold">{expPercent}%</span>
+        </div>
+        <div className="h-[6px] w-full bg-[#F4F4F4] rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-1000"
+            style={{ width: `${expPercent}%`, backgroundColor: gearColor }}
+          />
+        </div>
+        <p className="text-[#B0B8C1] text-xs mt-2">다음 레벨까지 {100 - expPercent}% 남음</p>
+      </div>
+
+      {/* Streak Card */}
+      {hasLogs && (
+        <div className="bg-white rounded-[16px] shadow-card p-5 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🔥</span>
+              <span className="text-[#191F28] text-base font-bold">
+                {streak.current > 0 ? `${streak.current}일 연속 훈련 중!` : '오늘 훈련을 시작해보세요'}
+              </span>
+            </div>
+          </div>
+          <div className="flex gap-1 mb-3">
+            {weekDays.map((day, idx) => {
+              const trained = weekTrainedDays.has(idx);
+              return (
+                <div key={idx} className="flex-1 flex flex-col items-center gap-1">
+                  <div
+                    className={`w-full h-[6px] rounded-full transition-all ${trained ? '' : 'bg-[#F4F4F4]'}`}
+                    style={trained ? { backgroundColor: gearColor } : undefined}
+                  />
+                  <span className={`text-[10px] font-medium ${trained ? 'text-[#191F28]' : 'text-[#B0B8C1]'}`}>{day}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[#8B95A1] text-xs">이번 주 {streak.thisWeek}/7</span>
+            <span className="text-[#B0B8C1] text-xs">최장 기록: {streak.longest}일</span>
+          </div>
+        </div>
+      )}
+
+      {/* Weekly Summary Card */}
+      {hasLogs ? (
+        <div className="bg-white rounded-[16px] shadow-card p-5 mb-4">
+          <p className="text-[#8B95A1] text-xs font-medium mb-3">이번 주 요약</p>
+          <div className="flex items-baseline gap-1 mb-1">
+            <span className="text-[#191F28] text-[36px] font-bold tracking-tight leading-none">{weeklyHours}</span>
+            <span className="text-[#8B95A1] text-base font-medium">시간</span>
+          </div>
+          <p className="text-[#8B95A1] text-sm">{weeklyCount}회 운동</p>
+        </div>
+      ) : (
+        <EmptyState
+          title="첫 기록을 남겨보세요"
+          description="운동을 기록하면 여기에 주간 요약이 표시됩니다."
+        />
+      )}
+
+      {/* Stats Grid 2x3 */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white p-3 rounded-xl border border-[#dde4e3] text-center">
-          <p className="text-[10px] font-bold text-[#678380] mb-1">파워</p>
-          <p className="text-lg font-bold text-clay">{stats.forehand + stats.serve}</p>
-        </div>
-        <div className="bg-white p-3 rounded-xl border border-[#dde4e3] text-center">
-          <p className="text-[10px] font-bold text-[#678380] mb-1">스피드</p>
-          <p className="text-lg font-bold text-primary">{stats.footwork}</p>
-        </div>
-        <div className="bg-white p-3 rounded-xl border border-[#dde4e3] text-center">
-          <p className="text-[10px] font-bold text-[#678380] mb-1">체력</p>
-          <p className="text-lg font-bold text-blue-500">{stats.mental}</p>
-        </div>
+        {statItems.map((item) => (
+          <div key={item.label} className="bg-white rounded-[16px] shadow-card p-4 text-center">
+            <p className="text-[#8B95A1] text-xs font-medium mb-1">{item.label}</p>
+            <p className="text-[#191F28] text-xl font-bold">{item.value}</p>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -1,10 +1,27 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Pencil, Trash2 } from 'lucide-react';
+import EmptyState from '../components/EmptyState';
+import ConfirmDialog from '../components/ConfirmDialog';
 
-export default function Calendar({ logs }) {
+const TYPE_COLORS = {
+  lesson: '#2a9d8f',
+  game: '#e76f51',
+  practice: '#3b82f6'
+};
+
+const TYPE_LABELS = {
+  lesson: '레슨',
+  game: '경기',
+  practice: '개인 연습'
+};
+
+export default function Calendar({ logs, onDeleteLog, onEditLog }) {
+  const navigate = useNavigate();
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(today);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -14,139 +31,174 @@ export default function Calendar({ logs }) {
   const handlePrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const handleNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
-  // 로그 데이터가 배열인지 확인 (안전장치)
   const safeLogs = Array.isArray(logs) ? logs : [];
-  
   const getLogsForDate = (dateStr) => safeLogs.filter(log => log.date === dateStr);
   const selectedLogs = getLogsForDate(selectedDate);
   const formatDateStr = (day) => `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
+  const handleDelete = (log) => {
+    setDeleteTarget(log);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget && onDeleteLog) {
+      onDeleteLog(deleteTarget.id);
+    }
+    setDeleteTarget(null);
+  };
+
+  const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+
   return (
-    <div className="bg-[#f6f8f6] min-h-screen pb-24 font-sans text-slate-900">
-      
-      {/* 헤더 & 컨트롤 */}
-      <div className="flex items-center justify-between p-4 border-b border-[#3b5441] bg-white">
-        <h2 className="text-lg font-bold tracking-widest uppercase flex-1 text-center">PIXEL HISTORY</h2>
-      </div>
-      
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={handlePrevMonth} className="hover:text-primary transition-colors"><ChevronLeft /></button>
-          <p className="text-lg font-bold uppercase tracking-tighter">
-            {currentDate.toLocaleString('en-US', { month: 'long', year: 'numeric' })}
+    <div className="bg-[#F4F4F4] min-h-screen pb-32 font-sans">
+
+      {/* Month Navigation */}
+      <div className="bg-white shadow-card">
+        <div className="flex items-center justify-between px-5 py-4">
+          <button onClick={handlePrevMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F4F4F4] transition-colors">
+            <ChevronLeft size={20} className="text-[#191F28]" />
+          </button>
+          <p className="text-lg font-bold text-[#191F28]">
+            {year}년 {monthNames[month]}
           </p>
-          <button onClick={handleNextMonth} className="hover:text-primary transition-colors"><ChevronRight /></button>
+          <button onClick={handleNextMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F4F4F4] transition-colors">
+            <ChevronRight size={20} className="text-[#191F28]" />
+          </button>
         </div>
 
-        {/* 달력 그리드 */}
-        <div className="grid grid-cols-7 gap-1 w-full mb-6">
-          {['S','M','T','W','T','F','S'].map((d, i) => (
-            <div key={i} className="text-[#9db9a4] text-[11px] font-bold h-8 flex items-center justify-center">{d}</div>
-          ))}
-          {Array.from({ length: firstDayOfMonth }).map((_, i) => <div key={`empty-${i}`} className="h-12"></div>)}
-          
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const day = i + 1;
-            const dateStr = formatDateStr(day);
-            const dayLogs = getLogsForDate(dateStr);
-            const hasLog = dayLogs.length > 0;
-            const isSelected = dateStr === selectedDate;
+        <div className="px-4 pb-4">
+          <div className="grid grid-cols-7 gap-1 w-full mb-2">
+            {['일','월','화','수','목','금','토'].map((d, i) => (
+              <div key={i} className="text-[#B0B8C1] text-[11px] font-medium h-8 flex items-center justify-center">{d}</div>
+            ))}
+            {Array.from({ length: firstDayOfMonth }).map((_, i) => <div key={`empty-${i}`} className="h-11"></div>)}
 
-            return (
-              <button
-                key={day}
-                onClick={() => setSelectedDate(dateStr)}
-                className={`h-12 w-full text-sm font-medium flex flex-col items-center justify-center border transition-all relative
-                  ${isSelected ? 'bg-primary/10 ring-2 ring-primary border-transparent z-10' : 'border-[#3b5441]/10 bg-white hover:bg-gray-50'}
-                `}
-              >
-                <span className={isSelected || hasLog ? 'font-bold' : 'text-gray-400'}>{day}</span>
-                {hasLog && (
-                  <span className="material-symbols-outlined text-[14px] text-primary mt-1 animate-bounce">sports_tennis</span>
-                )}
-              </button>
-            );
-          })}
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const day = i + 1;
+              const dateStr = formatDateStr(day);
+              const dayLogs = getLogsForDate(dateStr);
+              const hasLog = dayLogs.length > 0;
+              const isSelected = dateStr === selectedDate;
+              const isToday = dateStr === new Date().toISOString().split('T')[0];
+
+              return (
+                <button
+                  key={day}
+                  onClick={() => setSelectedDate(dateStr)}
+                  className={`h-11 w-full text-sm font-medium flex flex-col items-center justify-center rounded-full transition-all relative
+                    ${isSelected ? 'bg-primary text-white' : isToday ? 'text-primary font-bold' : 'text-[#191F28] hover:bg-[#F4F4F4]'}
+                  `}
+                >
+                  <span>{day}</span>
+                  {hasLog && !isSelected && (
+                    <div className="absolute bottom-1 flex gap-0.5">
+                      {dayLogs.slice(0, 3).map((log, idx) => (
+                        <div
+                          key={idx}
+                          className="w-1 h-1 rounded-full"
+                          style={{ backgroundColor: TYPE_COLORS[log.type] || '#2a9d8f' }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {hasLog && isSelected && (
+                    <div className="absolute bottom-1 flex gap-0.5">
+                      {dayLogs.slice(0, 3).map((_, idx) => (
+                        <div key={idx} className="w-1 h-1 rounded-full bg-white/70" />
+                      ))}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* 상세 기록 (안전장치 적용됨) */}
-      <div className="border-t border-[#3b5441] bg-white min-h-[300px]">
-        <div className="bg-primary/5 border-b border-[#3b5441] px-4 py-3">
-          <h3 className="text-sm font-bold tracking-widest uppercase italic">DAILY LOG - {selectedDate}</h3>
-        </div>
+      {/* Daily Log */}
+      <div className="px-5 pt-4">
+        <p className="text-[#8B95A1] text-xs font-medium mb-3">{selectedDate}</p>
 
         {selectedLogs.length === 0 ? (
-          <div className="p-10 text-center text-gray-400 text-sm">기록된 운동이 없습니다.</div>
+          <EmptyState
+            title="기록이 없습니다"
+            description="이 날의 운동을 기록해보세요."
+            showCTA={false}
+          />
         ) : (
-          selectedLogs.map((log, idx) => {
-            // ▼▼▼ 여기가 핵심! 데이터가 없어도 에러 안 나게 처리 ▼▼▼
-            const details = log.details || {}; 
-            const tags = details.tags || [];
-            const scores = details.scores || [];
-            const games = details.games || [];
-            // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+          <div className="space-y-3">
+            {selectedLogs.map((log) => {
+              const details = log.details || {};
+              const tags = details.tags || [];
+              const games = details.games || [];
 
-            return (
-              <div key={idx} className="animate-fade-in border-b border-[#3b5441]/10 pb-6 last:border-0">
-                <div className="flex items-center gap-4 px-4 py-4">
-                  <div className="flex items-center justify-center rounded bg-slate-100 w-14 h-14 border border-[#3b5441] shrink-0">
-                    <span className="text-3xl">{log.type === 'game' ? '⚔️' : log.type === 'lesson' ? '🎓' : '🔥'}</span>
+              return (
+                <div key={log.id || log.date + log.type} className="animate-fade-in bg-white rounded-[16px] shadow-card p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: TYPE_COLORS[log.type] || '#2a9d8f' }}
+                      />
+                      <span className="text-[#191F28] text-sm font-bold">
+                        {TYPE_LABELS[log.type] || log.type}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {onEditLog && log.id && (
+                        <button onClick={() => { onEditLog(log); navigate('/log'); }} className="p-1.5 rounded-full hover:bg-[#F4F4F4] text-[#B0B8C1]">
+                          <Pencil size={14} />
+                        </button>
+                      )}
+                      {onDeleteLog && log.id && (
+                        <button onClick={() => handleDelete(log)} className="p-1.5 rounded-full hover:bg-red-50 text-[#B0B8C1] hover:text-red-500">
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex flex-col justify-center flex-1">
-                    <p className="text-base font-bold uppercase tracking-tight">
-                      {log.type === 'game' ? 'Match Play' : log.type === 'lesson' ? 'Tennis Lesson' : 'Practice'}
-                    </p>
-                    <p className="text-xs text-gray-500 font-medium truncate">
-                      {/* 안전하게 데이터 표시 */}
-                      {log.type === 'game' 
-                        ? (details.matchCount ? `${details.matchCount} Game(s)` : '기록 없음') 
-                        : (tags.length > 0 ? tags.join(', ') : '기본 훈련')}
-                    </p>
-                  </div>
-                  <span className="px-2 py-1 bg-primary text-white text-[10px] font-black uppercase rounded-sm">
-                    {log.duration} MIN
-                  </span>
-                </div>
 
-                {/* 정보 카드 */}
-                <div className="flex gap-4 px-4 mb-4">
-                  <div className="flex-1 flex flex-col gap-1 rounded p-3 border border-[#3b5441] bg-white">
-                    <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Duration</p>
-                    <p className="text-xl font-black italic">{log.duration} MINS</p>
+                  <div className="flex items-center gap-3 text-sm text-[#8B95A1]">
+                    <span>{log.duration}분</span>
+                    {log.satisfaction > 0 && (
+                      <>
+                        <span className="text-[#F4F4F4]">|</span>
+                        <span>{['😫','😕','😐','🙂','😆'][log.satisfaction - 1]}</span>
+                      </>
+                    )}
+                    <span className="text-[#F4F4F4]">|</span>
+                    {log.type === 'game'
+                      ? <span>{games.length > 0 ? `${games[0].myScore}:${games[0].oppScore} (${games[0].result === 'win' ? '승' : '패'})` : '결과 없음'}</span>
+                      : <span>{tags.length > 0 ? tags.join(', ') : '기본 훈련'}</span>
+                    }
                   </div>
-                  <div className="flex-1 flex flex-col gap-1 rounded p-3 border border-[#3b5441] bg-white">
-                    <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">
-                      {log.type === 'game' ? 'Result' : 'Focus'}
-                    </p>
-                    <p className="text-sm font-bold truncate">
-                       {/* 게임 결과 요약 또는 태그 수 표시 */}
-                       {log.type === 'game' 
-                         ? (games.length > 0 ? `${games[0].myScore}:${games[0].oppScore} (${games[0].result})` : '결과 없음')
-                         : `${tags.length} Skills`}
-                    </p>
-                  </div>
-                </div>
 
-                {/* 메모 & 사진 */}
-                <div className="px-4 space-y-3">
                   {log.note && (
-                    <div className="p-3 rounded border border-[#3b5441] bg-slate-50">
-                      <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-1">Notes</p>
-                      <p className="text-sm italic text-gray-700">"{log.note}"</p>
-                    </div>
+                    <p className="text-[#8B95A1] text-xs mt-2 italic">"{log.note}"</p>
                   )}
+
                   {log.photo && (
-                    <div className="rounded border border-[#3b5441] overflow-hidden">
-                      <img src={log.photo} alt="Session" className="w-full h-48 object-cover" />
+                    <div className="mt-3 rounded-[12px] overflow-hidden">
+                      <img src={log.photo} alt="Session" className="w-full h-40 object-cover" />
                     </div>
                   )}
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="기록 삭제"
+          message="이 기록을 삭제하면 해당 스탯 포인트도 함께 차감됩니다."
+          confirmLabel="삭제"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+          danger
+        />
+      )}
     </div>
   );
 }
