@@ -30,7 +30,7 @@ export default function Onboarding({ onComplete }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F4F4] flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen bg-[#F4F4F4] flex flex-col items-center justify-center px-6 relative">
       <div className="w-full max-w-sm">
 
         {step === 1 && (
@@ -98,6 +98,7 @@ export default function Onboarding({ onComplete }) {
           </div>
         )}
       </div>
+      <p className="absolute bottom-6 text-[11px] text-[#B0B8C1]">v1.0 잇마테 by 한PD</p>
     </div>
   );
 }
