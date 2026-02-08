@@ -9,7 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function Settings() {
   const { data, handleUpdateProfile, handleImportData, handleResetData, gearColor, setGearColor, level, logs, stats } = useData();
-  const { user, profile, signInWithKakao, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [editName, setEditName] = useState(data.profileName || '');
@@ -135,14 +135,7 @@ export default function Settings() {
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-xs text-[#8B95A1]">로그인하면 데이터 동기화, 친구 기능을 사용할 수 있습니다.</p>
-              <button
-                onClick={signInWithKakao}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-[12px] font-bold text-sm transition-all"
-                style={{ backgroundColor: '#FEE500', color: '#000000' }}
-              >
-                카카오로 로그인
-              </button>
+              <p className="text-xs text-[#8B95A1]">현재 비로그인 상태입니다. 데이터는 이 기기에만 저장됩니다.</p>
             </div>
           )}
         </div>

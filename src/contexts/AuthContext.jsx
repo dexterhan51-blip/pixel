@@ -97,17 +97,6 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe();
   }, [fetchProfile]);
 
-  const signInWithKakao = useCallback(async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'kakao',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
-    if (error) console.error('Kakao login error:', error);
-    return { error };
-  }, []);
-
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) console.error('Sign out error:', error);
@@ -125,7 +114,6 @@ export function AuthProvider({ children }) {
     isLoading,
     isFirstLogin,
     setIsFirstLogin,
-    signInWithKakao,
     signOut,
     fetchProfile,
     updateProfile,

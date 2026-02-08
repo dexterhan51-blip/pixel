@@ -7,7 +7,6 @@ import { useData } from './contexts/DataContext';
 
 import Home from './pages/Home';
 import Log from './pages/Log';
-import Login from './pages/Login';
 import Onboarding from './pages/Onboarding';
 import LevelUpModal from './components/LevelUpModal';
 
@@ -85,7 +84,6 @@ export default function App() {
             <Route path="/log" element={<Log />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/login" element={<Login />} />
             <Route path="/friends" element={<Friends />} />
             <Route path="/friend-activity/:friendId" element={<FriendActivity />} />
           </Routes>
