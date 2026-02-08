@@ -71,8 +71,9 @@ export default function App() {
     );
   }
 
-  // Show login quiz if not authenticated and Supabase is configured
-  if (!user && isSupabaseConfigured) {
+  // New users: show login quiz before onboarding
+  // Existing users (onboardingComplete): skip gate, they can log in from Settings
+  if (!user && isSupabaseConfigured && !onboardingComplete) {
     return <Login />;
   }
 

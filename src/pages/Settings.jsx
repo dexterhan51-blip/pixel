@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Upload, User, Info, ExternalLink, Palette, Award, Check, Lock, LogOut, Users, Copy, ChevronRight } from 'lucide-react';
+import { Download, Upload, User, Info, ExternalLink, Palette, Award, Check, Lock, LogOut, LogIn, Users, Copy, ChevronRight } from 'lucide-react';
 import ConfirmDialog from '../components/ConfirmDialog';
 import SyncStatusIndicator from '../components/SyncStatusIndicator';
 import { calculateAchievements } from '../utils/gameData';
@@ -9,7 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function Settings() {
   const { data, handleUpdateProfile, handleImportData, handleResetData, gearColor, setGearColor, level, logs, stats } = useData();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, signInAnonymously } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [editName, setEditName] = useState(data.profileName || '');
@@ -18,6 +18,11 @@ export default function Settings() {
   const [importMessage, setImportMessage] = useState('');
   const [importError, setImportError] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [showLoginQuiz, setShowLoginQuiz] = useState(false);
+  const [quizAnswer, setQuizAnswer] = useState('');
+  const [quizError, setQuizError] = useState('');
+  const [quizLoading, setQuizLoading] = useState(false);
+  const [quizShake, setQuizShake] = useState(false);
 
   const colors = [
     { name: '오리지널 그린', value: '#2a9d8f' },
@@ -97,6 +102,26 @@ export default function Settings() {
     }
   };
 
+  const handleQuizSubmit = async () => {
+    const normalized = quizAnswer.replace(/\s/g, '').toLowerCase();
+    if (normalized !== '러브포티') {
+      setQuizError('정답이 아닙니다. 다시 시도해주세요!');
+      setQuizShake(true);
+      setTimeout(() => setQuizShake(false), 500);
+      return;
+    }
+    setQuizError('');
+    setQuizLoading(true);
+    const { error } = await signInAnonymously();
+    if (error) {
+      setQuizError('로그인에 실패했습니다. 다시 시도해주세요.');
+    } else {
+      setShowLoginQuiz(false);
+      setQuizAnswer('');
+    }
+    setQuizLoading(false);
+  };
+
   const handleSignOut = async () => {
     await signOut();
   };
@@ -135,7 +160,48 @@ export default function Settings() {
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-xs text-[#8B95A1]">현재 비로그인 상태입니다. 데이터는 이 기기에만 저장됩니다.</p>
+              <p className="text-xs text-[#8B95A1]">로그인하면 친구 초대 기능을 사용할 수 있습니다.</p>
+              {!showLoginQuiz ? (
+                <button
+                  onClick={() => setShowLoginQuiz(true)}
+                  className="w-full flex items-center gap-3 p-3 rounded-[12px] bg-primary/10 hover:bg-primary/20 transition-colors"
+                >
+                  <LogIn size={18} className="text-primary" />
+                  <span className="text-sm font-bold text-primary">로그인하기</span>
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-[#8B95A1]">우리 팀 이름은?</label>
+                  <input
+                    type="text"
+                    value={quizAnswer}
+                    onChange={(e) => { setQuizAnswer(e.target.value); setQuizError(''); }}
+                    placeholder="정답을 입력하세요"
+                    maxLength={20}
+                    className={`w-full p-3 rounded-[12px] bg-[#F4F4F4] border-none text-sm font-bold text-[#191F28] focus:outline-none focus:ring-2 focus:ring-primary ${quizShake ? 'animate-shake' : ''}`}
+                    autoFocus
+                    onKeyDown={(e) => e.key === 'Enter' && !quizLoading && handleQuizSubmit()}
+                  />
+                  {quizError && <p className="text-red-500 text-xs font-bold">{quizError}</p>}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleQuizSubmit}
+                      disabled={!quizAnswer.trim() || quizLoading}
+                      className="flex-1 py-2.5 rounded-[12px] bg-primary text-white font-bold text-sm disabled:opacity-40 flex items-center justify-center"
+                    >
+                      {quizLoading ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : '확인'}
+                    </button>
+                    <button
+                      onClick={() => { setShowLoginQuiz(false); setQuizAnswer(''); setQuizError(''); }}
+                      className="px-4 py-2.5 rounded-[12px] bg-[#F4F4F4] text-[#8B95A1] font-bold text-sm"
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
