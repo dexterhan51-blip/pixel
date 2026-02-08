@@ -103,8 +103,8 @@ export default function Settings() {
   };
 
   const handleQuizSubmit = async () => {
-    const normalized = quizAnswer.replace(/\s/g, '').toLowerCase();
-    if (normalized !== '러브포티') {
+    const normalized = quizAnswer.normalize('NFC').replace(/\s/g, '').toLowerCase();
+    if (normalized !== '러브포티'.normalize('NFC')) {
       setQuizError('정답이 아닙니다. 다시 시도해주세요!');
       setQuizShake(true);
       setTimeout(() => setQuizShake(false), 500);

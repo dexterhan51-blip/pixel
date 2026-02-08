@@ -10,8 +10,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    const normalized = answer.replace(/\s/g, '').toLowerCase();
-    if (normalized !== '러브포티') {
+    const normalized = answer.normalize('NFC').replace(/\s/g, '').toLowerCase();
+    if (normalized !== '러브포티'.normalize('NFC')) {
       setError('정답이 아닙니다. 다시 시도해주세요!');
       setShake(true);
       hapticsLight();
@@ -25,9 +25,11 @@ export default function Login() {
 
     const { error: authError } = await signInAnonymously();
     if (authError) {
+      console.error('Login error:', authError);
       setError('로그인에 실패했습니다. 다시 시도해주세요.');
       setLoading(false);
     }
+    // On success, onAuthStateChange in AuthContext updates user → App re-renders away from Login
   };
 
   return (
