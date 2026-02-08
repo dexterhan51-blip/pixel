@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
@@ -12,6 +12,7 @@ export function AuthProvider({ children }) {
 
   // Fetch profile from Supabase profiles table
   const fetchProfile = useCallback(async (userId) => {
+    if (!isSupabaseConfigured) return null;
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -32,7 +33,7 @@ export function AuthProvider({ children }) {
 
   // Update profile in Supabase
   const updateProfile = useCallback(async (updates) => {
-    if (!user) return null;
+    if (!user || !isSupabaseConfigured) return null;
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -55,7 +56,19 @@ export function AuthProvider({ children }) {
 
   // Initialize auth state
   useEffect(() => {
+    // Supabase 미설정 시 바로 로딩 해제
+    if (!isSupabaseConfigured) {
+      setIsLoading(false);
+      return;
+    }
+
+    // 안전장치: 3초 후 강제 로딩 해제
+    const timeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 3000);
+
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      clearTimeout(timeout);
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
 
@@ -71,6 +84,7 @@ export function AuthProvider({ children }) {
         setIsLoading(false);
       }
     }).catch((err) => {
+      clearTimeout(timeout);
       console.error('Auth session error:', err);
       setIsLoading(false);
     });
@@ -85,7 +99,6 @@ export function AuthProvider({ children }) {
           setProfile(p);
 
           if (event === 'SIGNED_IN') {
-            // Check if this is a brand new user (first login)
             if (p && !p.onboarding_complete) {
               setIsFirstLogin(true);
             }
@@ -97,7 +110,10 @@ export function AuthProvider({ children }) {
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, [fetchProfile]);
 
   const signOut = useCallback(async () => {

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const DataContext = createContext(null);
 
@@ -107,7 +107,7 @@ export function DataProvider({ children }) {
 
   // Background sync: fetch logs from Supabase when user logs in
   useEffect(() => {
-    if (!user) return;
+    if (!user || !isSupabaseConfigured) return;
 
     const fetchRemoteLogs = async () => {
       try {
@@ -161,7 +161,7 @@ export function DataProvider({ children }) {
 
   // Flush sync queue to Supabase
   const flushSyncQueue = useCallback(async () => {
-    if (!user || syncQueueRef.current.length === 0) return;
+    if (!user || !isSupabaseConfigured || syncQueueRef.current.length === 0) return;
     setIsSyncing(true);
 
     const queue = [...syncQueueRef.current];
@@ -221,7 +221,7 @@ export function DataProvider({ children }) {
 
   // Sync a log to Supabase (immediate, background)
   const syncLogToSupabase = useCallback(async (logData, action = 'INSERT_LOG') => {
-    if (!user) return;
+    if (!user || !isSupabaseConfigured) return;
 
     if (!isOnline) {
       addToSyncQueue({ type: action, data: logData });
