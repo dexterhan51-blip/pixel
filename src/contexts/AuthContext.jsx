@@ -116,9 +116,27 @@ export function AuthProvider({ children }) {
     };
   }, [fetchProfile]);
 
+  const signInAnonymously = useCallback(async () => {
+    if (!isSupabaseConfigured) return { error: new Error('Supabase not configured') };
+    try {
+      const { data, error } = await supabase.auth.signInAnonymously();
+      if (error) {
+        console.error('Anonymous sign-in error:', error);
+        return { error };
+      }
+      return { data, error: null };
+    } catch (err) {
+      console.error('Anonymous sign-in exception:', err);
+      return { error: err };
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) console.error('Sign out error:', error);
+    // Clear local app data so next anonymous user starts fresh
+    localStorage.removeItem('pixel-tennis-data-v1');
+    localStorage.removeItem('pixel-tennis-sync-queue');
     setSession(null);
     setUser(null);
     setProfile(null);
@@ -133,6 +151,7 @@ export function AuthProvider({ children }) {
     isLoading,
     isFirstLogin,
     setIsFirstLogin,
+    signInAnonymously,
     signOut,
     fetchProfile,
     updateProfile,

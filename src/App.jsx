@@ -8,7 +8,9 @@ import { useData } from './contexts/DataContext';
 import Home from './pages/Home';
 import Log from './pages/Log';
 import Onboarding from './pages/Onboarding';
+import Login from './pages/Login';
 import LevelUpModal from './components/LevelUpModal';
+import { isSupabaseConfigured } from './lib/supabase';
 
 const Stats = lazy(() => import('./pages/Stats'));
 const Calendar = lazy(() => import('./pages/Calendar'));
@@ -50,7 +52,7 @@ const BottomNav = ({ accentColor }) => {
 };
 
 export default function App() {
-  const { isLoading: authLoading } = useAuth();
+  const { isLoading: authLoading, user } = useAuth();
   const {
     gearColor,
     onboardingComplete,
@@ -67,6 +69,11 @@ export default function App() {
         <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
+  }
+
+  // Show login quiz if not authenticated and Supabase is configured
+  if (!user && isSupabaseConfigured) {
+    return <Login />;
   }
 
   // Show onboarding if not complete

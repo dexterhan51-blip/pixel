@@ -120,8 +120,8 @@ export default function Settings() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-bold text-[#191F28]">{user.user_metadata?.full_name || user.email || '카카오 사용자'}</p>
-                  <p className="text-xs text-[#8B95A1]">카카오 로그인됨</p>
+                  <p className="text-sm font-bold text-[#191F28]">{user.user_metadata?.full_name || user.email || '사용자'}</p>
+                  <p className="text-xs text-[#8B95A1]">로그인됨</p>
                 </div>
                 <SyncStatusIndicator />
               </div>
