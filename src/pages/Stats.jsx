@@ -2,8 +2,11 @@ import React, { useMemo } from 'react';
 import { ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import TrainingHeatmap from '../components/TrainingHeatmap';
 import { aggregateByMonth } from '../utils/gameData';
+import { useData } from '../contexts/DataContext';
 
-export default function Stats({ stats, logs = [], gearColor = '#2a9d8f' }) {
+export default function Stats() {
+  const { stats, logs, gearColor } = useData();
+
   const radarData = useMemo(() => [
     { subject: '포핸드', A: stats.forehand, fullMark: 50 },
     { subject: '백핸드', A: stats.backhand, fullMark: 50 },
@@ -22,12 +25,10 @@ export default function Stats({ stats, logs = [], gearColor = '#2a9d8f' }) {
 
   const monthlyData = useMemo(() => aggregateByMonth(logs, 6), [logs]);
 
-  // Current month summary
   const currentMonth = monthlyData[monthlyData.length - 1];
   const currentMonthHours = currentMonth ? (currentMonth.totalMinutes / 60).toFixed(1) : '0';
   const currentMonthCount = currentMonth ? currentMonth.count : 0;
 
-  // Average satisfaction for current month
   const safeLogs = Array.isArray(logs) ? logs : [];
   const now = new Date();
   const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -46,10 +47,8 @@ export default function Stats({ stats, logs = [], gearColor = '#2a9d8f' }) {
     <div className="px-5 pb-32 pt-8 max-w-md mx-auto">
       <h2 className="text-[22px] font-bold text-[#191F28] mb-6">나의 플레이 스타일</h2>
 
-      {/* Yearly Heatmap */}
       <TrainingHeatmap logs={logs} gearColor={gearColor} />
 
-      {/* Radar Chart */}
       <div className="w-full h-80 bg-white rounded-[16px] shadow-card mb-4 flex flex-col items-center justify-center relative">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
@@ -71,7 +70,6 @@ export default function Stats({ stats, logs = [], gearColor = '#2a9d8f' }) {
         </span>
       </div>
 
-      {/* Monthly Summary */}
       <div className="bg-white rounded-[16px] shadow-card p-5 mb-4">
         <p className="text-[#8B95A1] text-xs font-medium mb-3">이번 달 요약</p>
         <div className="flex items-baseline gap-4">
@@ -96,7 +94,6 @@ export default function Stats({ stats, logs = [], gearColor = '#2a9d8f' }) {
         </div>
       </div>
 
-      {/* Monthly Bar Chart */}
       <div className="bg-white rounded-[16px] shadow-card p-5 mb-4">
         <p className="text-[#191F28] text-base font-bold mb-1">최근 6개월 추이</p>
         <p className="text-[#B0B8C1] text-xs mb-4">월별 운동 시간 (시간)</p>
@@ -116,7 +113,6 @@ export default function Stats({ stats, logs = [], gearColor = '#2a9d8f' }) {
         </div>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
         {Object.entries(stats).map(([key, value]) => (
           <div key={key} className="bg-white p-4 rounded-[16px] shadow-card flex justify-between items-center">

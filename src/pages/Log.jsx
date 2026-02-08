@@ -4,8 +4,10 @@ import { Check, ChevronRight, ChevronLeft, Minus, Plus, Camera, Sun, Cloud, Clou
 import { compressImage } from '../utils/imageUtils';
 import { hapticsLight, hapticsMedium } from '../utils/haptics';
 import { calculatePoints } from '../utils/gameData';
+import { useData } from '../contexts/DataContext';
 
-export default function Log({ onSave, editingLog, onCancel }) {
+export default function Log() {
+  const { handleSaveLog, editingLog } = useData();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -136,7 +138,7 @@ export default function Log({ onSave, editingLog, onCancel }) {
         : { tags: selectedTags }
     };
 
-    onSave(logData, tempStats);
+    handleSaveLog(logData, tempStats);
     navigate('/');
   };
 
@@ -145,7 +147,6 @@ export default function Log({ onSave, editingLog, onCancel }) {
   const totalPoints = calculatePoints(duration);
   const canComplete = editingLog ? true : (totalPoints === 0 || pointsLeft === 0);
 
-  // Thin progress bar
   const ProgressBar = () => (
     <div className="flex gap-2 mb-6">
       {[1, 2, 3].map((s) => (
@@ -325,6 +326,7 @@ export default function Log({ onSave, editingLog, onCancel }) {
                           value={game.myScore}
                           min={0}
                           max={99}
+                          onFocus={(e) => e.target.select()}
                           onChange={(e) => handleGameChange(idx, 'myScore', Math.min(99, Math.max(0, Number(e.target.value))))}
                           className="w-full text-center p-2 bg-[#F4F4F4] rounded-[12px] border-none font-bold text-lg text-[#191F28] focus:ring-2 focus:ring-primary outline-none"
                         />
@@ -337,6 +339,7 @@ export default function Log({ onSave, editingLog, onCancel }) {
                           value={game.oppScore}
                           min={0}
                           max={99}
+                          onFocus={(e) => e.target.select()}
                           onChange={(e) => handleGameChange(idx, 'oppScore', Math.min(99, Math.max(0, Number(e.target.value))))}
                           className="w-full text-center p-2 bg-[#F4F4F4] rounded-[12px] border-none font-bold text-lg text-[#191F28] focus:ring-2 focus:ring-primary outline-none"
                         />

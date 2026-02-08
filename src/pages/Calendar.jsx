@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Pencil, Trash2 } from 'lucide-react';
 import EmptyState from '../components/EmptyState';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { useData } from '../contexts/DataContext';
 
 const TYPE_COLORS = {
   lesson: '#2a9d8f',
@@ -16,7 +17,8 @@ const TYPE_LABELS = {
   practice: '개인 연습'
 };
 
-export default function Calendar({ logs, onDeleteLog, onEditLog }) {
+export default function Calendar() {
+  const { logs, handleDeleteLog, handleEditLog } = useData();
   const navigate = useNavigate();
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(today);
@@ -41,8 +43,8 @@ export default function Calendar({ logs, onDeleteLog, onEditLog }) {
   };
 
   const confirmDelete = () => {
-    if (deleteTarget && onDeleteLog) {
-      onDeleteLog(deleteTarget.id);
+    if (deleteTarget && handleDeleteLog) {
+      handleDeleteLog(deleteTarget.id);
     }
     setDeleteTarget(null);
   };
@@ -145,12 +147,12 @@ export default function Calendar({ logs, onDeleteLog, onEditLog }) {
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
-                      {onEditLog && log.id && (
-                        <button onClick={() => { onEditLog(log); navigate('/log'); }} className="p-1.5 rounded-full hover:bg-[#F4F4F4] text-[#B0B8C1]">
+                      {handleEditLog && log.id && (
+                        <button onClick={() => { handleEditLog(log); navigate('/log'); }} className="p-1.5 rounded-full hover:bg-[#F4F4F4] text-[#B0B8C1]">
                           <Pencil size={14} />
                         </button>
                       )}
-                      {onDeleteLog && log.id && (
+                      {handleDeleteLog && log.id && (
                         <button onClick={() => handleDelete(log)} className="p-1.5 rounded-full hover:bg-red-50 text-[#B0B8C1] hover:text-red-500">
                           <Trash2 size={14} />
                         </button>

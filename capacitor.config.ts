@@ -19,6 +19,9 @@ const config: CapacitorConfig = {
       backgroundColor: '#f6f8f6',
     },
   },
+  // Deep link URL scheme for OAuth callbacks
+  // iOS: com.pixeltennis.app://auth/callback
+  // Configure in Xcode: URL Types > URL Schemes > com.pixeltennis.app
 };
 
 export default config;

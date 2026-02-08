@@ -1,18 +1,21 @@
-import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
-import { MemoryRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import React, { Suspense, lazy } from 'react';
+import { MemoryRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Home as HomeIcon, Calendar as CalendarIcon, PieChart, MoreHorizontal, PlusCircle } from 'lucide-react';
+
+import { useAuth } from './contexts/AuthContext';
+import { useData } from './contexts/DataContext';
 
 import Home from './pages/Home';
 import Log from './pages/Log';
+import Login from './pages/Login';
 import Onboarding from './pages/Onboarding';
 import LevelUpModal from './components/LevelUpModal';
-import { hapticsMedium } from './utils/haptics';
 
 const Stats = lazy(() => import('./pages/Stats'));
 const Calendar = lazy(() => import('./pages/Calendar'));
 const Settings = lazy(() => import('./pages/Settings'));
-
-const STORAGE_KEY = 'pixel-tennis-data-v1';
+const Friends = lazy(() => import('./pages/Friends'));
+const FriendActivity = lazy(() => import('./pages/FriendActivity'));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-[50vh]">
@@ -47,172 +50,29 @@ const BottomNav = ({ accentColor }) => {
   );
 };
 
-function migrateData(data) {
-  if (data.logs) {
-    data.logs = data.logs.map(log => {
-      if (!log.id) {
-        return { ...log, id: crypto.randomUUID() };
-      }
-      return log;
-    });
-  }
-  if (!data.profileName) {
-    data.profileName = '';
-  }
-  if (data.onboardingComplete === undefined) {
-    data.onboardingComplete = false;
-  }
-  return data;
-}
-
 export default function App() {
-  const loadInitialData = () => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      return migrateData(JSON.parse(saved));
-    }
-    return {
-      level: 1,
-      exp: 0,
-      stats: { forehand: 1, backhand: 1, serve: 1, volley: 1, footwork: 1, mental: 1 },
-      logs: [],
-      gearColor: '#2a9d8f',
-      profileName: '',
-      onboardingComplete: false,
-    };
-  };
+  const { isLoading: authLoading } = useAuth();
+  const {
+    gearColor,
+    onboardingComplete,
+    showLevelUp,
+    setShowLevelUp,
+    level,
+    handleOnboardingComplete,
+  } = useData();
 
-  const [data, setData] = useState(loadInitialData);
-  const [showLevelUp, setShowLevelUp] = useState(false);
-  const [editingLog, setEditingLog] = useState(null);
-  const [storageWarning, setStorageWarning] = useState(false);
-  const maxExp = 100;
+  // Show loading spinner while checking auth state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#F4F4F4] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    try {
-      const json = JSON.stringify(data);
-      localStorage.setItem(STORAGE_KEY, json);
-      const usageMB = new Blob([json]).size / (1024 * 1024);
-      setStorageWarning(usageMB > 4);
-    } catch (e) {
-      setStorageWarning(true);
-    }
-  }, [data]);
-
-  const { level, exp, stats, logs, gearColor, profileName, onboardingComplete } = data;
-
-  const setGearColor = useCallback((val) => {
-    setData(prev => ({ ...prev, gearColor: typeof val === 'function' ? val(prev.gearColor) : val }));
-    hapticsMedium();
-  }, []);
-
-  const handleSaveLog = useCallback((logData, gainedStats) => {
-    setData(prev => {
-      let newLogs;
-      const existingIndex = prev.logs.findIndex(l => l.id === logData.id);
-      if (existingIndex >= 0) {
-        const oldLog = prev.logs[existingIndex];
-        const oldGained = oldLog.gainedStats || { forehand: 0, backhand: 0, serve: 0, volley: 0, footwork: 0, mental: 0 };
-        newLogs = [...prev.logs];
-        newLogs[existingIndex] = logData;
-
-        const newStats = { ...prev.stats };
-        Object.keys(newStats).forEach(key => {
-          newStats[key] = newStats[key] - (oldGained[key] || 0) + (gainedStats[key] || 0);
-        });
-
-        return { ...prev, logs: newLogs, stats: newStats };
-      }
-
-      newLogs = [logData, ...prev.logs];
-
-      const newStats = {
-        forehand: prev.stats.forehand + gainedStats.forehand,
-        backhand: prev.stats.backhand + gainedStats.backhand,
-        serve: prev.stats.serve + gainedStats.serve,
-        volley: prev.stats.volley + gainedStats.volley,
-        footwork: prev.stats.footwork + gainedStats.footwork,
-        mental: prev.stats.mental + gainedStats.mental,
-      };
-
-      const gainedExp = Math.floor(logData.duration / 2);
-      let newExp = prev.exp + gainedExp;
-      let newLevel = prev.level;
-
-      while (newExp >= maxExp) {
-        newExp -= maxExp;
-        newLevel += 1;
-      }
-
-      if (newLevel > prev.level) {
-        setTimeout(() => setShowLevelUp(true), 300);
-      }
-
-      return {
-        ...prev,
-        logs: newLogs,
-        stats: newStats,
-        exp: newExp,
-        level: newLevel
-      };
-    });
-    setEditingLog(null);
-  }, []);
-
-  const handleDeleteLog = useCallback((logId) => {
-    setData(prev => {
-      const log = prev.logs.find(l => l.id === logId);
-      if (!log) return prev;
-
-      const gained = log.gainedStats || { forehand: 0, backhand: 0, serve: 0, volley: 0, footwork: 0, mental: 0 };
-      const newStats = { ...prev.stats };
-      Object.keys(newStats).forEach(key => {
-        newStats[key] = Math.max(1, newStats[key] - (gained[key] || 0));
-      });
-
-      return {
-        ...prev,
-        logs: prev.logs.filter(l => l.id !== logId),
-        stats: newStats
-      };
-    });
-  }, []);
-
-  const handleEditLog = useCallback((log) => {
-    setEditingLog(log);
-  }, []);
-
-  const handleOnboardingComplete = useCallback((name, color) => {
-    setData(prev => ({
-      ...prev,
-      profileName: name,
-      gearColor: color,
-      onboardingComplete: true,
-    }));
-  }, []);
-
-  const handleUpdateProfile = useCallback((name) => {
-    setData(prev => ({ ...prev, profileName: name }));
-  }, []);
-
-  const handleImportData = useCallback((imported) => {
-    setData(migrateData(imported));
-  }, []);
-
-  const handleResetData = useCallback(() => {
-    setData({
-      level: 1,
-      exp: 0,
-      stats: { forehand: 1, backhand: 1, serve: 1, volley: 1, footwork: 1, mental: 1 },
-      logs: [],
-      gearColor: '#2a9d8f',
-      profileName: '',
-      onboardingComplete: false,
-    });
-  }, []);
-
+  // Show onboarding if not complete
   if (!onboardingComplete) {
-    return <Onboarding onComplete={handleOnboardingComplete} />;
+    return <Onboarding />;
   }
 
   return (
@@ -220,36 +80,14 @@ export default function App() {
       <div className="min-h-screen bg-[#F4F4F4] font-sans text-[#191F28]">
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            <Route path="/" element={
-              <Home level={level} exp={exp} maxExp={maxExp} stats={stats} gearColor={gearColor} profileName={profileName} logs={logs} storageWarning={storageWarning} />
-            } />
-            <Route path="/stats" element={<Stats stats={stats} logs={logs} gearColor={gearColor} />} />
-            <Route path="/log" element={
-              <Log
-                onSave={handleSaveLog}
-                editingLog={editingLog}
-              />
-            } />
-            <Route path="/calendar" element={
-              <Calendar
-                logs={logs}
-                onDeleteLog={handleDeleteLog}
-                onEditLog={handleEditLog}
-              />
-            } />
-            <Route path="/settings" element={
-              <Settings
-                data={data}
-                onUpdateProfile={handleUpdateProfile}
-                onImportData={handleImportData}
-                onResetData={handleResetData}
-                gearColor={gearColor}
-                setGearColor={setGearColor}
-                level={level}
-                logs={logs}
-                stats={stats}
-              />
-            } />
+            <Route path="/" element={<Home />} />
+            <Route path="/stats" element={<Stats />} />
+            <Route path="/log" element={<Log />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/friends" element={<Friends />} />
+            <Route path="/friend-activity/:friendId" element={<FriendActivity />} />
           </Routes>
         </Suspense>
         <BottomNav accentColor={gearColor} />

@@ -1,15 +1,23 @@
 import React, { useState, useRef, useMemo } from 'react';
-import { Download, Upload, User, Info, ExternalLink, Palette, Award, Check, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Download, Upload, User, Info, ExternalLink, Palette, Award, Check, Lock, LogOut, Users, Copy, ChevronRight } from 'lucide-react';
 import ConfirmDialog from '../components/ConfirmDialog';
+import SyncStatusIndicator from '../components/SyncStatusIndicator';
 import { calculateAchievements } from '../utils/gameData';
+import { useData } from '../contexts/DataContext';
+import { useAuth } from '../contexts/AuthContext';
 
-export default function Settings({ data, onUpdateProfile, onImportData, onResetData, gearColor, setGearColor, level, logs = [], stats = {} }) {
+export default function Settings() {
+  const { data, handleUpdateProfile, handleImportData, handleResetData, gearColor, setGearColor, level, logs, stats } = useData();
+  const { user, profile, signInWithKakao, signOut } = useAuth();
+  const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [editName, setEditName] = useState(data.profileName || '');
   const [editing, setEditing] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [importMessage, setImportMessage] = useState('');
   const [importError, setImportError] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   const colors = [
     { name: '오리지널 그린', value: '#2a9d8f' },
@@ -24,7 +32,7 @@ export default function Settings({ data, onUpdateProfile, onImportData, onResetD
 
   const handleSaveName = () => {
     if (editName.trim()) {
-      onUpdateProfile(editName.trim());
+      handleUpdateProfile(editName.trim());
       setEditing(false);
     }
   };
@@ -53,7 +61,7 @@ export default function Settings({ data, onUpdateProfile, onImportData, onResetD
           && typeof imported.level === 'number'
           && typeof imported.exp === 'number';
         if (isValid) {
-          onImportData(imported);
+          handleImportData(imported);
           setImportMessage('데이터를 성공적으로 불러왔습니다!');
           setImportError(false);
         } else {
@@ -69,6 +77,30 @@ export default function Settings({ data, onUpdateProfile, onImportData, onResetD
     e.target.value = '';
   };
 
+  const handleCopyInviteCode = async () => {
+    if (profile?.invite_code) {
+      try {
+        await navigator.clipboard.writeText(profile.invite_code);
+        setCodeCopied(true);
+        setTimeout(() => setCodeCopied(false), 2000);
+      } catch {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = profile.invite_code;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        setCodeCopied(true);
+        setTimeout(() => setCodeCopied(false), 2000);
+      }
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
     <div className="min-h-screen bg-[#F4F4F4] pb-32 font-sans">
       {/* Header */}
@@ -77,6 +109,44 @@ export default function Settings({ data, onUpdateProfile, onImportData, onResetD
       </div>
 
       <div className="px-5 space-y-4 max-w-md mx-auto">
+
+        {/* Account Section */}
+        <div className="bg-white rounded-[16px] shadow-card p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <User size={18} className="text-[#8B95A1]" />
+            <h3 className="font-bold text-[#191F28]">계정</h3>
+          </div>
+          {user ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-[#191F28]">{user.user_metadata?.full_name || user.email || '카카오 사용자'}</p>
+                  <p className="text-xs text-[#8B95A1]">카카오 로그인됨</p>
+                </div>
+                <SyncStatusIndicator />
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="w-full flex items-center gap-3 p-3 rounded-[12px] bg-[#F4F4F4] hover:bg-[#ECECEC] transition-colors"
+              >
+                <LogOut size={18} className="text-[#8B95A1]" />
+                <span className="text-sm font-bold text-[#8B95A1]">로그아웃</span>
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-xs text-[#8B95A1]">로그인하면 데이터 동기화, 친구 기능을 사용할 수 있습니다.</p>
+              <button
+                onClick={signInWithKakao}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-[12px] font-bold text-sm transition-all"
+                style={{ backgroundColor: '#FEE500', color: '#000000' }}
+              >
+                카카오로 로그인
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Profile */}
         <div className="bg-white rounded-[16px] shadow-card p-5">
           <div className="flex items-center gap-3 mb-4">
@@ -105,7 +175,41 @@ export default function Settings({ data, onUpdateProfile, onImportData, onResetD
           )}
         </div>
 
-        {/* Theme Color (from Locker) */}
+        {/* Friends Section (only for logged-in users) */}
+        {user && (
+          <div className="bg-white rounded-[16px] shadow-card p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <Users size={18} className="text-[#8B95A1]" />
+              <h3 className="font-bold text-[#191F28]">친구</h3>
+            </div>
+            {profile?.invite_code && (
+              <div className="mb-3">
+                <p className="text-xs text-[#8B95A1] mb-2">내 초대 코드</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-[#F4F4F4] px-4 py-2.5 rounded-[12px] font-mono font-bold text-[#191F28] text-sm tracking-wider">
+                    {profile.invite_code}
+                  </div>
+                  <button
+                    onClick={handleCopyInviteCode}
+                    className="px-3 py-2.5 rounded-[12px] bg-primary text-white flex items-center gap-1 text-sm font-bold"
+                  >
+                    {codeCopied ? <Check size={14} /> : <Copy size={14} />}
+                    {codeCopied ? '복사됨' : '복사'}
+                  </button>
+                </div>
+              </div>
+            )}
+            <button
+              onClick={() => navigate('/friends')}
+              className="w-full flex items-center justify-between p-3 rounded-[12px] bg-[#F4F4F4] hover:bg-[#ECECEC] transition-colors"
+            >
+              <span className="text-sm font-bold text-[#191F28]">친구 관리</span>
+              <ChevronRight size={16} className="text-[#B0B8C1]" />
+            </button>
+          </div>
+        )}
+
+        {/* Theme Color */}
         <div className="bg-white rounded-[16px] shadow-card p-5">
           <div className="flex items-center gap-3 mb-4">
             <Palette size={18} className="text-[#8B95A1]" />
@@ -129,7 +233,7 @@ export default function Settings({ data, onUpdateProfile, onImportData, onResetD
           <p className="text-xs text-[#B0B8C1] mt-3">앱 전체에 적용됩니다</p>
         </div>
 
-        {/* Achievements (from Locker) */}
+        {/* Achievements */}
         <div className="bg-white rounded-[16px] shadow-card p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -194,7 +298,7 @@ export default function Settings({ data, onUpdateProfile, onImportData, onResetD
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-[#8B95A1]">버전</span>
-              <span className="font-bold text-[#191F28]">1.0.0</span>
+              <span className="font-bold text-[#191F28]">1.1.0</span>
             </div>
             <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between py-1">
               <span className="text-[#8B95A1]">개인정보 처리방침</span>
@@ -223,7 +327,7 @@ export default function Settings({ data, onUpdateProfile, onImportData, onResetD
           title="데이터 초기화"
           message="모든 기록, 스탯, 레벨이 삭제됩니다. 이 작업은 되돌릴 수 없습니다."
           confirmLabel="초기화"
-          onConfirm={() => { onResetData(); setShowResetConfirm(false); }}
+          onConfirm={() => { handleResetData(); setShowResetConfirm(false); }}
           onCancel={() => setShowResetConfirm(false)}
           danger
         />

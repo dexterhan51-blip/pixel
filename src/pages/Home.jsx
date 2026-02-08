@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings } from 'lucide-react';
+import { Settings, Bell } from 'lucide-react';
 import EmptyState from '../components/EmptyState';
+import NotificationBell from '../components/NotificationBell';
 import { getLevelTitle, calculateStreak } from '../utils/gameData';
+import { useData } from '../contexts/DataContext';
+import { useAuth } from '../contexts/AuthContext';
 
-export default function Home({ level, exp, maxExp, stats, gearColor, profileName, logs, storageWarning }) {
+export default function Home() {
+  const { level, exp, maxExp, stats, gearColor, profileName, logs, storageWarning } = useData();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const expPercent = Math.floor((exp / maxExp) * 100);
 
@@ -27,7 +32,6 @@ export default function Home({ level, exp, maxExp, stats, gearColor, profileName
 
   const streak = calculateStreak(safeLogs);
 
-  // Which days of this week have training (Sun=0 .. Sat=6)
   const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
   const weekTrainedDays = new Set();
   safeLogs.forEach(log => {
@@ -59,15 +63,18 @@ export default function Home({ level, exp, maxExp, stats, gearColor, profileName
         </div>
       )}
 
-      {/* Greeting + Settings */}
+      {/* Greeting + Notification + Settings */}
       <div className="flex items-center justify-between mt-8 mb-6">
         <div>
           <p className="text-[#8B95A1] text-sm font-medium">{greeting}</p>
           <p className="text-[#191F28] text-[22px] font-bold tracking-tight mt-0.5">{profileName || '플레이어'}님</p>
         </div>
-        <button onClick={() => navigate('/settings')} className="w-10 h-10 rounded-full bg-white shadow-card flex items-center justify-center">
-          <Settings size={18} className="text-[#8B95A1]" />
-        </button>
+        <div className="flex items-center gap-2">
+          {user && <NotificationBell />}
+          <button onClick={() => navigate('/settings')} className="w-10 h-10 rounded-full bg-white shadow-card flex items-center justify-center">
+            <Settings size={18} className="text-[#8B95A1]" />
+          </button>
+        </div>
       </div>
 
       {/* Level Progress Card */}

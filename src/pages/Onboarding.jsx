@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ChevronRight, Check } from 'lucide-react';
 import { hapticsLight, hapticsMedium } from '../utils/haptics';
+import { useData } from '../contexts/DataContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const COLORS = [
   { name: '코트 그린', value: '#2a9d8f' },
@@ -10,7 +12,9 @@ const COLORS = [
   { name: '핫 핑크', value: '#ff006e' },
 ];
 
-export default function Onboarding({ onComplete }) {
+export default function Onboarding() {
+  const { handleOnboardingComplete } = useData();
+  const { user, updateProfile } = useAuth();
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [selectedColor, setSelectedColor] = useState('#2a9d8f');
@@ -22,10 +26,19 @@ export default function Onboarding({ onComplete }) {
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (name.trim()) {
       hapticsMedium();
-      onComplete(name.trim(), selectedColor);
+      handleOnboardingComplete(name.trim(), selectedColor);
+
+      // Also update Supabase profile if logged in
+      if (user) {
+        await updateProfile({
+          profile_name: name.trim(),
+          gear_color: selectedColor,
+          onboarding_complete: true,
+        });
+      }
     }
   };
 
