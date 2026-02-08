@@ -70,6 +70,9 @@ export function AuthProvider({ children }) {
       } else {
         setIsLoading(false);
       }
+    }).catch((err) => {
+      console.error('Auth session error:', err);
+      setIsLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
