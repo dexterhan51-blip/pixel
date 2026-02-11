@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Download, Upload, User, Info, ExternalLink, Palette, Award, Check, Lock, LogOut, LogIn, Users, Copy, ChevronRight } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Download, Upload, User, Info, Palette, Award, Check, Lock, LogOut, LogIn, Users, Copy, ChevronRight } from 'lucide-react';
 import ConfirmDialog from '../components/ConfirmDialog';
 import SyncStatusIndicator from '../components/SyncStatusIndicator';
 import { calculateAchievements } from '../utils/gameData';
@@ -359,14 +359,14 @@ export default function Settings() {
               <span className="text-[#8B95A1]">버전</span>
               <span className="font-bold text-[#191F28]">1.1.0</span>
             </div>
-            <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between py-1">
+            <Link to="/privacy" className="flex items-center justify-between py-1">
               <span className="text-[#8B95A1]">개인정보 처리방침</span>
-              <ExternalLink size={14} className="text-[#B0B8C1]" />
-            </a>
-            <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between py-1">
+              <ChevronRight size={14} className="text-[#B0B8C1]" />
+            </Link>
+            <Link to="/terms" className="flex items-center justify-between py-1">
               <span className="text-[#8B95A1]">이용약관</span>
-              <ExternalLink size={14} className="text-[#B0B8C1]" />
-            </a>
+              <ChevronRight size={14} className="text-[#B0B8C1]" />
+            </Link>
           </div>
         </div>
 

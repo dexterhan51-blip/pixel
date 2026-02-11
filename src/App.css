@@ -34,3 +34,9 @@
 .pt-safe {
   padding-top: max(0px, env(safe-area-inset-top));
 }
+
+/* Touch target minimum size for mobile accessibility */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}

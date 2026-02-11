@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+
 import { ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { useFriends } from '../hooks/useFriends';
 import { getLevelTitle } from '../utils/gameData';
@@ -19,7 +19,6 @@ const TYPE_COLORS = {
 };
 
 export default function FriendActivity() {
-  const navigate = useNavigate();
   const { friendId } = useParams();
   const { getFriendActivity } = useFriends();
   const [friendProfile, setFriendProfile] = useState(null);
@@ -70,10 +69,7 @@ export default function FriendActivity() {
     return (
       <div className="min-h-screen bg-[#F4F4F4] pb-32 font-sans">
         <div className="bg-white shadow-card">
-          <div className="flex items-center gap-3 px-5 py-4 pt-safe">
-            <button onClick={() => navigate('/friends')} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F4F4F4]">
-              <ChevronLeft size={20} className="text-[#191F28]" />
-            </button>
+          <div className="px-5 py-4 pt-safe">
             <h2 className="text-lg font-bold text-[#191F28]">친구 활동</h2>
           </div>
         </div>
@@ -88,10 +84,7 @@ export default function FriendActivity() {
     <div className="min-h-screen bg-[#F4F4F4] pb-32 font-sans">
       {/* Header */}
       <div className="bg-white shadow-card">
-        <div className="flex items-center gap-3 px-5 py-4 pt-safe">
-          <button onClick={() => navigate('/friends')} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F4F4F4]">
-            <ChevronLeft size={20} className="text-[#191F28]" />
-          </button>
+        <div className="px-5 py-4 pt-safe">
           <h2 className="text-lg font-bold text-[#191F28]">{friendProfile.profile_name}님</h2>
         </div>
       </div>

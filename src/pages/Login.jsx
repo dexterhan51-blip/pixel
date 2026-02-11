@@ -69,7 +69,7 @@ export default function Login() {
           </button>
         </div>
       </div>
-      <p className="absolute bottom-6 text-[11px] text-[#B0B8C1]">v1.0 잇마테 by 한PD</p>
+      <p className="absolute bottom-6 text-[11px] text-[#B0B8C1]">v1.0 잇츠 마이 테니스</p>
     </div>
   );
 }

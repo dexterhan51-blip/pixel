@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Copy, Check, UserPlus, UserMinus, Clock, Send } from 'lucide-react';
+import { Copy, Check, UserPlus, UserMinus, Clock, Send } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useFriends } from '../hooks/useFriends';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -85,10 +85,7 @@ export default function Friends() {
     <div className="min-h-screen bg-[#F4F4F4] pb-32 font-sans">
       {/* Header */}
       <div className="bg-white shadow-card">
-        <div className="flex items-center gap-3 px-5 py-4 pt-safe">
-          <button onClick={() => navigate('/settings')} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#F4F4F4]">
-            <ChevronLeft size={20} className="text-[#191F28]" />
-          </button>
+        <div className="px-5 py-4 pt-safe">
           <h2 className="text-lg font-bold text-[#191F28]">친구 관리</h2>
         </div>
       </div>
@@ -234,7 +231,7 @@ export default function Friends() {
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); setRemoveTarget(f.friend_id); }}
-                    className="p-1.5 rounded-full hover:bg-red-50 text-[#B0B8C1] hover:text-red-500"
+                    className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-red-50 text-[#B0B8C1] hover:text-red-500"
                   >
                     <UserMinus size={14} />
                   </button>

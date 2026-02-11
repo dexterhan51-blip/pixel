@@ -17,6 +17,8 @@ const Calendar = lazy(() => import('./pages/Calendar'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Friends = lazy(() => import('./pages/Friends'));
 const FriendActivity = lazy(() => import('./pages/FriendActivity'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const Terms = lazy(() => import('./pages/Terms'));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-[50vh]">
@@ -35,18 +37,25 @@ const BottomNav = ({ accentColor }) => {
   ];
 
   return (
-    <nav className="fixed bottom-0 w-full bg-white/95 backdrop-blur-md shadow-[0_-1px_4px_rgba(0,0,0,0.04)] flex justify-around py-3 pb-safe z-50">
-      {menu.map((item) => (
-        <Link
-          key={item.name}
-          to={item.path}
-          className={`flex flex-col items-center text-[10px] transition-colors ${location.pathname === item.path ? 'font-bold' : 'text-[#B0B8C1]'}`}
-          style={{ color: location.pathname === item.path ? accentColor : undefined }}
-        >
-          {item.icon}
-          <span className="mt-1">{item.name}</span>
-        </Link>
-      ))}
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40 px-4 pointer-events-none"
+      style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 8px)' }}
+      role="navigation"
+      aria-label="하단 내비게이션"
+    >
+      <div className="max-w-md mx-auto h-14 flex items-center justify-around bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.12)] pointer-events-auto">
+        {menu.map((item) => (
+          <Link
+            key={item.name}
+            to={item.path}
+            className={`flex flex-col items-center text-[10px] transition-colors ${location.pathname === item.path ? 'font-bold' : 'text-[#B0B8C1]'}`}
+            style={{ color: location.pathname === item.path ? accentColor : undefined }}
+          >
+            {item.icon}
+            <span className="mt-1">{item.name}</span>
+          </Link>
+        ))}
+      </div>
     </nav>
   );
 };
@@ -94,6 +103,8 @@ export default function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/friends" element={<Friends />} />
             <Route path="/friend-activity/:friendId" element={<FriendActivity />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
           </Routes>
         </Suspense>
         <BottomNav accentColor={gearColor} />

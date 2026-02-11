@@ -11,7 +11,7 @@ export default defineConfig({
       includeAssets: ['icons/icon.svg', 'icons/icon-180.png'],
       manifest: {
         name: '잇츠 마이 테니스',
-        short_name: '마이테니스',
+        short_name: '잇츠 마이 테니스',
         description: '성장한다. 조용히 그리고 천천히.',
         theme_color: '#F4F4F4',
         background_color: '#F4F4F4',
