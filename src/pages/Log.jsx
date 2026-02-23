@@ -232,6 +232,7 @@ export default function Log() {
             <label className="block text-sm font-bold text-[#8B95A1] mb-2">운동 시간 (분)</label>
             <input
               type="number"
+              inputMode="numeric"
               value={duration}
               min={1}
               max={480}
@@ -293,9 +294,9 @@ export default function Log() {
               <div className="flex justify-between items-center bg-[#F4F4F4] p-4 rounded-[12px]">
                 <label className="text-sm font-bold text-[#191F28]">총 경기 수</label>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setMatchCount(Math.max(1, matchCount - 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center font-bold text-[#8B95A1] shadow-card">-</button>
+                  <button onClick={() => setMatchCount(Math.max(1, matchCount - 1))} className="w-10 h-10 rounded-full bg-white flex items-center justify-center font-bold text-[#8B95A1] shadow-card">-</button>
                   <span className="text-lg font-black w-4 text-center text-[#191F28]">{matchCount}</span>
-                  <button onClick={() => setMatchCount(Math.min(10, matchCount + 1))} className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-card">+</button>
+                  <button onClick={() => setMatchCount(Math.min(10, matchCount + 1))} className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-card">+</button>
                 </div>
               </div>
 
@@ -323,6 +324,7 @@ export default function Log() {
                         <span className="text-[10px] font-bold text-[#B0B8C1] mb-1">우리팀</span>
                         <input
                           type="number"
+                          inputMode="numeric"
                           value={game.myScore}
                           min={0}
                           max={99}
@@ -336,6 +338,7 @@ export default function Log() {
                         <span className="text-[10px] font-bold text-[#B0B8C1] mb-1">상대팀</span>
                         <input
                           type="number"
+                          inputMode="numeric"
                           value={game.oppScore}
                           min={0}
                           max={99}
@@ -394,8 +397,8 @@ export default function Log() {
                   <button
                     key={tag}
                     onClick={() => toggleTag(tag)}
-                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                      selectedTags.includes(tag) ? 'bg-primary text-white' : 'bg-[#F4F4F4] text-[#8B95A1]'
+                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-150 ${
+                      selectedTags.includes(tag) ? 'bg-primary text-white scale-105' : 'bg-[#F4F4F4] text-[#8B95A1]'
                     }`}
                   >
                     {tag}
@@ -488,7 +491,14 @@ export default function Log() {
                 canComplete ? 'bg-primary text-white hover:brightness-105' : 'bg-[#F4F4F4] text-[#B0B8C1] cursor-not-allowed'
               }`}
             >
-              {saving ? '저장 중...' : '기록 완료'} {!saving && <Check size={18} />}
+              {saving ? (
+                <>
+                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  저장 중...
+                </>
+              ) : (
+                <>기록 완료 <Check size={18} /></>
+              )}
             </button>
           </div>
         </div>

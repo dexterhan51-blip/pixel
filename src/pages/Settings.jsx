@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Download, Upload, User, Info, Palette, Award, Check, Lock, LogOut, LogIn, Users, Copy, ChevronRight } from 'lucide-react';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -122,6 +122,13 @@ export default function Settings() {
     setQuizLoading(false);
   };
 
+  // Auto-dismiss import message after 3 seconds
+  useEffect(() => {
+    if (!importMessage) return;
+    const timer = setTimeout(() => setImportMessage(''), 3000);
+    return () => clearTimeout(timer);
+  }, [importMessage]);
+
   const handleSignOut = async () => {
     await signOut();
   };
@@ -134,6 +141,58 @@ export default function Settings() {
       </div>
 
       <div className="px-5 space-y-4 max-w-md mx-auto">
+
+        {/* Profile */}
+        <div className="bg-white rounded-[16px] shadow-card p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <User size={18} className="text-[#8B95A1]" />
+            <h3 className="font-bold text-[#191F28]">프로필</h3>
+          </div>
+          {editing ? (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                maxLength={20}
+                className="flex-1 p-3 rounded-[12px] bg-[#F4F4F4] border-none font-bold text-[#191F28] focus:outline-none focus:ring-2 focus:ring-primary"
+                autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
+              />
+              <button onClick={handleSaveName} className="px-4 py-2 bg-primary text-white rounded-[12px] font-bold text-sm">저장</button>
+              <button onClick={() => setEditing(false)} className="px-4 py-2 bg-[#F4F4F4] text-[#8B95A1] rounded-[12px] font-bold text-sm">취소</button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-[#191F28]">{data.profileName || '이름 없음'}</span>
+              <button onClick={() => setEditing(true)} className="text-primary text-sm font-bold">편집</button>
+            </div>
+          )}
+        </div>
+
+        {/* Theme Color */}
+        <div className="bg-white rounded-[16px] shadow-card p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <Palette size={18} className="text-[#8B95A1]" />
+            <h3 className="font-bold text-[#191F28]">테마 컬러</h3>
+          </div>
+          <div className="flex gap-3">
+            {colors.map((c) => (
+              <button
+                key={c.value}
+                onClick={() => setGearColor(c.value)}
+                className={`w-11 h-11 rounded-full transition-all flex items-center justify-center ${
+                  gearColor === c.value ? 'ring-2 ring-offset-2 ring-[#191F28] scale-110' : ''
+                }`}
+                style={{ backgroundColor: c.value }}
+                title={c.name}
+              >
+                {gearColor === c.value && <Check size={16} className="text-white" />}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-[#B0B8C1] mt-3">앱 전체에 적용됩니다</p>
+        </div>
 
         {/* Account Section */}
         <div className="bg-white rounded-[16px] shadow-card p-5">
@@ -206,34 +265,6 @@ export default function Settings() {
           )}
         </div>
 
-        {/* Profile */}
-        <div className="bg-white rounded-[16px] shadow-card p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <User size={18} className="text-[#8B95A1]" />
-            <h3 className="font-bold text-[#191F28]">프로필</h3>
-          </div>
-          {editing ? (
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                maxLength={20}
-                className="flex-1 p-3 rounded-[12px] bg-[#F4F4F4] border-none font-bold text-[#191F28] focus:outline-none focus:ring-2 focus:ring-primary"
-                autoFocus
-                onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
-              />
-              <button onClick={handleSaveName} className="px-4 py-2 bg-primary text-white rounded-[12px] font-bold text-sm">저장</button>
-              <button onClick={() => setEditing(false)} className="px-4 py-2 bg-[#F4F4F4] text-[#8B95A1] rounded-[12px] font-bold text-sm">취소</button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-[#191F28]">{data.profileName || '이름 없음'}</span>
-              <button onClick={() => setEditing(true)} className="text-primary text-sm font-bold">편집</button>
-            </div>
-          )}
-        </div>
-
         {/* Friends Section (only for logged-in users) */}
         {user && (
           <div className="bg-white rounded-[16px] shadow-card p-5">
@@ -267,30 +298,6 @@ export default function Settings() {
             </button>
           </div>
         )}
-
-        {/* Theme Color */}
-        <div className="bg-white rounded-[16px] shadow-card p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <Palette size={18} className="text-[#8B95A1]" />
-            <h3 className="font-bold text-[#191F28]">테마 컬러</h3>
-          </div>
-          <div className="flex gap-3">
-            {colors.map((c) => (
-              <button
-                key={c.value}
-                onClick={() => setGearColor(c.value)}
-                className={`w-11 h-11 rounded-full transition-all flex items-center justify-center ${
-                  gearColor === c.value ? 'ring-2 ring-offset-2 ring-[#191F28] scale-110' : ''
-                }`}
-                style={{ backgroundColor: c.value }}
-                title={c.name}
-              >
-                {gearColor === c.value && <Check size={16} className="text-white" />}
-              </button>
-            ))}
-          </div>
-          <p className="text-xs text-[#B0B8C1] mt-3">앱 전체에 적용됩니다</p>
-        </div>
 
         {/* Achievements */}
         <div className="bg-white rounded-[16px] shadow-card p-5">

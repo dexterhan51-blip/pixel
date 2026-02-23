@@ -17,7 +17,7 @@ export default {
         gear: "#2a9d8f"
       },
       boxShadow: {
-        card: "0 2px 8px rgba(0,0,0,0.04)",
+        card: "0 2px 12px rgba(0,0,0,0.08)",
       },
       fontFamily: {
         sans: ['"Pretendard"', 'ui-sans-serif', 'system-ui', 'sans-serif'],

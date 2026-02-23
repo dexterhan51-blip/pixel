@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Pencil, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pencil, Trash2, CalendarDays } from 'lucide-react';
 import EmptyState from '../components/EmptyState';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { useData } from '../contexts/DataContext';
@@ -126,6 +126,7 @@ export default function Calendar() {
             title="기록이 없습니다"
             description="이 날의 운동을 기록해보세요."
             showCTA={false}
+            icon={CalendarDays}
           />
         ) : (
           <div className="space-y-3">

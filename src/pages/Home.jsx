@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, Bell } from 'lucide-react';
+import { Settings, Bell, Check, TrendingUp } from 'lucide-react';
 import EmptyState from '../components/EmptyState';
 import NotificationBell from '../components/NotificationBell';
 import { getLevelTitle, calculateStreak } from '../utils/gameData';
@@ -40,6 +40,30 @@ export default function Home() {
       weekTrainedDays.add(logDate.getDay());
     }
   });
+
+  // Count-up animation hook
+  const useCountUp = (target, duration = 800) => {
+    const [value, setValue] = useState(0);
+    const prevTarget = useRef(target);
+    useEffect(() => {
+      if (target === prevTarget.current && value === target) return;
+      prevTarget.current = target;
+      const start = performance.now();
+      const from = 0;
+      const step = (now) => {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setValue(parseFloat((from + (target - from) * eased).toFixed(1)));
+        if (progress < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }, [target, duration]);
+    return value;
+  };
+
+  const animatedHours = useCountUp(parseFloat(weeklyHours));
+  const animatedStreak = useCountUp(streak.current, 600);
 
   const statItems = [
     { label: '포핸드', value: stats.forehand },
@@ -102,7 +126,7 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <span className="text-lg">🔥</span>
               <span className="text-[#191F28] text-base font-bold">
-                {streak.current > 0 ? `${streak.current}일 연속 훈련 중!` : '오늘 훈련을 시작해보세요'}
+                {streak.current > 0 ? `${Math.round(animatedStreak)}일 연속 훈련 중!` : '오늘 훈련을 시작해보세요'}
               </span>
             </div>
           </div>
@@ -112,9 +136,13 @@ export default function Home() {
               return (
                 <div key={idx} className="flex-1 flex flex-col items-center gap-1">
                   <div
-                    className={`w-full h-[6px] rounded-full transition-all ${trained ? '' : 'bg-[#F4F4F4]'}`}
+                    className={`w-full h-[6px] rounded-full transition-all relative ${trained ? '' : 'bg-[#F4F4F4]'}`}
                     style={trained ? { backgroundColor: gearColor } : undefined}
-                  />
+                  >
+                    {trained && (
+                      <Check size={8} className="absolute -top-[3px] left-1/2 -translate-x-1/2 text-white" strokeWidth={4} />
+                    )}
+                  </div>
                   <span className={`text-[10px] font-medium ${trained ? 'text-[#191F28]' : 'text-[#B0B8C1]'}`}>{day}</span>
                 </div>
               );
@@ -132,7 +160,7 @@ export default function Home() {
         <div className="bg-white rounded-[16px] shadow-card p-5 mb-4">
           <p className="text-[#8B95A1] text-xs font-medium mb-3">이번 주 요약</p>
           <div className="flex items-baseline gap-1 mb-1">
-            <span className="text-[#191F28] text-[36px] font-bold tracking-tight leading-none">{weeklyHours}</span>
+            <span className="text-[#191F28] text-[36px] font-bold tracking-tight leading-none">{animatedHours.toFixed(1)}</span>
             <span className="text-[#8B95A1] text-base font-medium">시간</span>
           </div>
           <p className="text-[#8B95A1] text-sm">{weeklyCount}회 운동</p>
@@ -141,6 +169,7 @@ export default function Home() {
         <EmptyState
           title="첫 기록을 남겨보세요"
           description="운동을 기록하면 여기에 주간 요약이 표시됩니다."
+          icon={TrendingUp}
         />
       )}
 

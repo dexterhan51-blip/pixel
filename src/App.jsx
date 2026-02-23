@@ -21,8 +21,34 @@ const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
 
 const LoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-[50vh]">
-    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+  <div className="pt-safe pb-32 px-5 max-w-md mx-auto animate-pulse">
+    {/* Header skeleton */}
+    <div className="flex items-center justify-between mt-8 mb-6">
+      <div>
+        <div className="h-4 w-24 bg-[#E8E8E8] rounded mb-2" />
+        <div className="h-6 w-32 bg-[#E8E8E8] rounded" />
+      </div>
+      <div className="w-10 h-10 rounded-full bg-[#E8E8E8]" />
+    </div>
+    {/* Card skeletons */}
+    <div className="bg-white rounded-[16px] shadow-card p-5 mb-4">
+      <div className="h-4 w-20 bg-[#E8E8E8] rounded mb-3" />
+      <div className="h-[6px] w-full bg-[#E8E8E8] rounded-full" />
+      <div className="h-3 w-36 bg-[#E8E8E8] rounded mt-2" />
+    </div>
+    <div className="bg-white rounded-[16px] shadow-card p-5 mb-4">
+      <div className="h-3 w-16 bg-[#E8E8E8] rounded mb-3" />
+      <div className="h-10 w-24 bg-[#E8E8E8] rounded mb-1" />
+      <div className="h-3 w-20 bg-[#E8E8E8] rounded" />
+    </div>
+    <div className="grid grid-cols-3 gap-3">
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="bg-white rounded-[16px] shadow-card p-4 flex flex-col items-center">
+          <div className="h-3 w-10 bg-[#E8E8E8] rounded mb-2" />
+          <div className="h-6 w-8 bg-[#E8E8E8] rounded" />
+        </div>
+      ))}
+    </div>
   </div>
 );
 
@@ -44,17 +70,26 @@ const BottomNav = ({ accentColor }) => {
       aria-label="하단 내비게이션"
     >
       <div className="max-w-md mx-auto h-14 flex items-center justify-around bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.12)] pointer-events-auto">
-        {menu.map((item) => (
-          <Link
-            key={item.name}
-            to={item.path}
-            className={`flex flex-col items-center text-[10px] transition-colors ${location.pathname === item.path ? 'font-bold' : 'text-[#B0B8C1]'}`}
-            style={{ color: location.pathname === item.path ? accentColor : undefined }}
-          >
-            {item.icon}
-            <span className="mt-1">{item.name}</span>
-          </Link>
-        ))}
+        {menu.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <Link
+              key={item.name}
+              to={item.path}
+              className={`relative flex flex-col items-center justify-center min-w-[48px] min-h-[44px] py-2 text-[10px] transition-colors ${isActive ? 'font-bold' : 'text-[#B0B8C1]'}`}
+              style={{ color: isActive ? accentColor : undefined }}
+            >
+              {isActive && (
+                <span
+                  className="absolute top-0.5 w-1 h-1 rounded-full"
+                  style={{ backgroundColor: accentColor }}
+                />
+              )}
+              {item.icon}
+              <span className="mt-1">{item.name}</span>
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );
